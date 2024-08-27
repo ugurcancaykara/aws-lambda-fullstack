@@ -145,6 +145,9 @@ func main() {
 			return err
 		}
 
+		// Export the S3 bucket name and SQS queue URL as outputs
+		ctx.Export("s3BucketName", bucket.Bucket)
+		ctx.Export("sqsQueueUrl", queue.Url)
 		return nil
 	})
 }
