@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -53,11 +54,11 @@ func handler(ctx context.Context, s3Event events.S3Event) {
 
 		csvReader := csv.NewReader(result.Body)
 		switch {
-		case s3Record.Object.Key == "customers.csv":
+		case strings.HasPrefix(s3Record.Object.Key, "customers_"):
 			processCustomers(csvReader, customers)
-		case s3Record.Object.Key == "orders.csv":
+		case strings.HasPrefix(s3Record.Object.Key, "orders_"):
 			processOrders(csvReader, customers)
-		case s3Record.Object.Key == "items.csv":
+		case strings.HasPrefix(s3Record.Object.Key, "items_"):
 			processItems(csvReader, customers)
 		default:
 			sendErrorMessage(sqsSvc, queueUrl, fmt.Sprintf("Unexpected file: %s", s3Record.Object.Key))
