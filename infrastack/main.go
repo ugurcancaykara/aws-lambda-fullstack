@@ -58,30 +58,13 @@ func main() {
 			return err
 		}
 
-		// Attach a policy to allow writing logs to CloudWatch
-		logPolicy, err := iam.NewRolePolicy(ctx, "lambda-log-policy", &iam.RolePolicyArgs{
-			Role: lambdaExecRole.Name,
-			Policy: pulumi.String(`{
-                "Version": "2012-10-17",
-                "Statement": [{
-                    "Effect": "Allow",
-                    "Action": [
-                        "logs:CreateLogGroup",
-                        "logs:CreateLogStream",
-                        "logs:PutLogEvents"
-                    ],
-                    "Resource": "arn:aws:logs:*:*:*"
-                }]
-            }`),
-		})
-
 		// Lambda function
 		// Set arguments for constructing the function resource.
 		args := &lambda.FunctionArgs{
 			Handler: pulumi.String("main"),
 			Role:    lambdaExecRole.Arn,
 
-			Runtime: pulumi.String(lambda.RuntimeGo1dx),
+			Runtime: pulumi.String("provided.al2023"),
 			// Runtime: pulumi.String("go1.x"),
 			Code: pulumi.NewFileArchive("../processinglambda/deployment.zip"),
 			Environment: lambda.FunctionEnvironmentArgs{
@@ -99,7 +82,6 @@ func main() {
 			ctx,
 			"dataProcessor",
 			args,
-			pulumi.DependsOn([]pulumi.Resource{logPolicy}),
 		)
 		if err != nil {
 			return err
