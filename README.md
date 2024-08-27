@@ -52,20 +52,18 @@ and after you authenticated to pulumi, we are all good
 
 1. **Clone the repository**
 ```
-git clone <repository-url>
-cd <repository-name>
+git clone https://github.com/ugurcancaykara/aws-lambda-fullstack
+cd aws-lambda-fullstack
 ```
 
-2.**Build the lambda function**: Navigate to the `lambda` directory and compile Go lambda for linux env:
+2.**Build the lambda function**: Run make command and compile Go lambda for linux env:
 ```
-cd lambda
-GOOS=linux go build -o main main.go
-zip deployment.zip main
+make build
 ```
 
 3. **Deploy the infrastructure**: Navigate to `infrastack` directory and run the following command
 ```
-cd ../infrastack
+cd infrastack
 pulumi up
 ```
 
@@ -85,4 +83,3 @@ The Lambda function is implemented in Go. It is triggered by events in the S3 bu
 - Consider integrating a more permanent storage solution like Amazon RDS or DynamoDB for processed data
 - Enhance error handling to manage and log unexpected inputs effectively
 
-# aws-lambda-fullstack

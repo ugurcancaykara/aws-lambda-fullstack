@@ -1,0 +1,7 @@
+name: infrastack
+runtime: go
+description: a minimal data processing pipeline with serverless setup
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: aws-go
