@@ -58,12 +58,40 @@ func main() {
 			return err
 		}
 
+		// Attach S3 bucket notification permission to lambda
+		_, err = iam.NewRolePolicy(ctx, "lambdaS3Policy", &iam.RolePolicyArgs{
+			Role: lambdaExecRole.Name,
+			Policy: pulumi.String(`{
+				"Version": "2012-10-17",
+				"Statement": [
+					{
+						"Effect": "Allow",
+						"Action": [
+							"s3:PutBucketNotificationConfiguration",
+							"s3:GetBucketNotificationConfiguration"
+						],
+						"Resource": "*"
+					}
+				]
+			}`),
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = iam.NewRolePolicyAttachment(ctx, "lambdaS3InvokePolicy", &iam.RolePolicyAttachmentArgs{
+			Role:      lambdaExecRole.Name,
+			PolicyArn: pulumi.String("arn:aws:iam::aws:policy/AmazonS3FullAccess"),
+		})
+		if err != nil {
+			return err
+		}
+
 		// Lambda function
 		// Set arguments for constructing the function resource.
 		args := &lambda.FunctionArgs{
 			Handler: pulumi.String("main"),
 			Role:    lambdaExecRole.Arn,
-
 			Runtime: pulumi.String("provided.al2023"),
 			// Runtime: pulumi.String("go1.x"),
 			Code: pulumi.NewFileArchive("../processinglambda/deployment.zip"),
@@ -75,12 +103,23 @@ func main() {
 			},
 		}
 
-		// Create the lambda using the args.
+		// Create the lambda using the args
 		lambdaFunc, err := lambda.NewFunction(
 			ctx,
 			"dataProcessor",
 			args,
 		)
+		if err != nil {
+			return err
+		}
+
+		// Add the Lambda resource policy to allow S3 to invoke it
+		_, err = lambda.NewPermission(ctx, "s3InvokePermission", &lambda.PermissionArgs{
+			Action:    pulumi.String("lambda:InvokeFunction"),
+			Function:  lambdaFunc.Name,
+			Principal: pulumi.String("s3.amazonaws.com"),
+			SourceArn: bucket.Arn,
+		})
 		if err != nil {
 			return err
 		}
