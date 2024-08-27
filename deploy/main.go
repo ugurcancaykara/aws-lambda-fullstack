@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/pulumi/pulumi-aws/sdk/v5/go/aws/dynamodb"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/lambda"
 	"github.com/pulumi/pulumi-aws/sdk/v6/go/aws/s3"
@@ -19,6 +20,21 @@ func main() {
 
 		// Create SQS queue
 		queue, err := sqs.NewQueue(ctx, "dataQueue", nil)
+		if err != nil {
+			return err
+		}
+
+		// Create DynamoDB Table
+		table, err := dynamodb.NewTable(ctx, "customersTable", &dynamodb.TableArgs{
+			Attributes: dynamodb.TableAttributeArray{
+				&dynamodb.TableAttributeArgs{
+					Name: pulumi.String("ID"),
+					Type: pulumi.String("S"),
+				},
+			},
+			HashKey:     pulumi.String("ID"),
+			BillingMode: pulumi.String("PAY_PER_REQUEST"), // Use on-demand billing mode
+		})
 		if err != nil {
 			return err
 		}
@@ -90,19 +106,38 @@ func main() {
 		if err != nil {
 			return err
 		}
-
+		_, err = iam.NewRolePolicy(ctx, "lambdaDynamoDBPolicy", &iam.RolePolicyArgs{
+			Role: lambdaExecRole.Name,
+			Policy: pulumi.Sprintf(`{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Effect": "Allow",
+				"Action": [
+					"dynamodb:PutItem",
+					"dynamodb:GetItem",
+					"dynamodb:UpdateItem"
+				],
+				"Resource": "%s"
+			}
+		]
+	}`, table.Arn),
+		})
+		if err != nil {
+			return err
+		}
 		// Lambda function
 		// Set arguments for constructing the function resource.
 		args := &lambda.FunctionArgs{
 			Handler: pulumi.String("main"),
 			Role:    lambdaExecRole.Arn,
 			Runtime: pulumi.String("provided.al2023"),
-			// Runtime: pulumi.String("go1.x"),
-			Code: pulumi.NewFileArchive("../processinglambda/deployment.zip"),
+			Code:    pulumi.NewFileArchive("../processinglambda/deployment.zip"),
 			Environment: lambda.FunctionEnvironmentArgs{
 				Variables: pulumi.StringMap{
-					"S3_BUCKET": bucket.Bucket,
-					"SQS_QUEUE": queue.Url,
+					"S3_BUCKET":      bucket.Bucket,
+					"SQS_QUEUE":      queue.Url,
+					"DYNAMODB_TABLE": table.Name,
 				},
 			},
 		}
@@ -118,7 +153,7 @@ func main() {
 		}
 
 		// Add the Lambda resource policy to allow S3 to invoke it
-		_, err = lambda.NewPermission(ctx, "s3InvokePermission", &lambda.PermissionArgs{
+		s3InvokePermission, err := lambda.NewPermission(ctx, "s3InvokePermission", &lambda.PermissionArgs{
 			Action:    pulumi.String("lambda:InvokeFunction"),
 			Function:  lambdaFunc.Name,
 			Principal: pulumi.String("s3.amazonaws.com"),
@@ -128,6 +163,7 @@ func main() {
 			return err
 		}
 
+		// Ensure the bucket notification depends on both the Lambda function and the permission
 		_, err = s3.NewBucketNotification(ctx, "bucketNotification", &s3.BucketNotificationArgs{
 			Bucket: bucket.ID(),
 			LambdaFunctions: s3.BucketNotificationLambdaFunctionArray{
@@ -140,14 +176,14 @@ func main() {
 					FilterSuffix: pulumi.String(".csv"),
 				},
 			},
-		}, pulumi.DependsOn([]pulumi.Resource{lambdaFunc}))
+		}, pulumi.DependsOn([]pulumi.Resource{lambdaFunc, s3InvokePermission}))
 		if err != nil {
 			return err
 		}
-
 		// Export the S3 bucket name and SQS queue URL as outputs
 		ctx.Export("s3BucketName", bucket.Bucket)
 		ctx.Export("sqsQueueUrl", queue.Url)
+		ctx.Export("dynamoDBTableName", table.Name)
 		return nil
 	})
 }
