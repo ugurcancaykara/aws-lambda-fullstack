@@ -75,8 +75,6 @@ func main() {
 			},
 		}
 
-		// FIX: can't provision lambda, it throws error related with unsupported version of runtime 1.x
-
 		// Create the lambda using the args.
 		lambdaFunc, err := lambda.NewFunction(
 			ctx,
