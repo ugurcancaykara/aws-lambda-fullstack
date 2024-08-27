@@ -48,7 +48,7 @@ pulumi login
 
 and after you authenticated to pulumi, we are all good
 
-#### Setup
+## Provisioning Infrastructure
 
 1. **Clone the repository**
 ```
@@ -66,6 +66,54 @@ make build
 cd infrastack
 pulumi up
 ```
+
+## Producing Messages
+
+### Assign values to variables
+
+```
+# Retrieve the S3 bucket name
+S3_BUCKET_NAME=$(pulumi stack output s3BucketName)
+
+# Retrieve the SQS queue URL
+SQS_QUEUE_URL=$(pulumi stack output sqsQueueUrl)
+```
+
+### Triggering lamba invocation with s3 notifications
+
+```
+# Upload customers_20230828.csv
+aws s3 cp customers_20230828.csv s3://$S3_BUCKET_NAME/customers_20230828.csv
+
+# Upload orders_20230828.csv
+aws s3 cp orders_20230828.csv s3://$S3_BUCKET_NAME/orders_20230828.csv
+
+# Upload items_20230828.csv
+aws s3 cp items_20230828.csv s3://$S3_BUCKET_NAME/items_20230828.csv
+```
+
+## Checking Messages
+
+### Verifying SQS Message
+```
+aws sqs receive-message --queue-url $SQS_QUEUE_URL --max-number-of-messages 10 --wait-time-seconds 10 --region eu-west-1
+```
+
+### Clean-Up Commands
+
+Delete files from S3
+```
+aws s3 rm s3://$S3_BUCKET_NAME/customers_20230828.csv
+aws s3 rm s3://$S3_BUCKET_NAME/orders_20230828.csv
+aws s3 rm s3://$S3_BUCKET_NAME/items_20230828.csv
+```
+
+
+Purge SQS queue
+```
+aws sqs purge-queue --queue-url $SQS_QUEUE_URL --region eu-west-1
+```
+
 
 
 ## Components
