@@ -49,31 +49,35 @@ func main() {
 			return err
 		}
 
-		// Attach SQS role to lambda
-		_, err = iam.NewRolePolicyAttachment(ctx, "lambdaSQSPolicyAttachment", &iam.RolePolicyAttachmentArgs{
-			Role:      lambdaExecRole.Name,
-			PolicyArn: pulumi.String("arn:aws:iam::aws:policy/AmazonSQSFullAccess"),
+		_, err = iam.NewRolePolicy(ctx, "lambdaSQSSendMessagePolicy", &iam.RolePolicyArgs{
+			Role: lambdaExecRole.Name,
+			Policy: pulumi.Sprintf(`{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Effect": "Allow",
+				"Action": "sqs:SendMessage",
+				"Resource": "%s"
+			}
+		]
+	}`, queue.Arn),
 		})
 		if err != nil {
 			return err
 		}
 
-		// Attach S3 bucket notification permission to lambda
-		_, err = iam.NewRolePolicy(ctx, "lambdaS3Policy", &iam.RolePolicyArgs{
+		_, err = iam.NewRolePolicy(ctx, "lambdaS3ReadPolicy", &iam.RolePolicyArgs{
 			Role: lambdaExecRole.Name,
-			Policy: pulumi.String(`{
-				"Version": "2012-10-17",
-				"Statement": [
-					{
-						"Effect": "Allow",
-						"Action": [
-							"s3:PutBucketNotificationConfiguration",
-							"s3:GetBucketNotificationConfiguration"
-						],
-						"Resource": "*"
-					}
-				]
-			}`),
+			Policy: pulumi.Sprintf(`{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Effect": "Allow",
+				"Action": "s3:GetObject",
+				"Resource": "%s/*"
+			}
+		]
+	}`, bucket.Arn),
 		})
 		if err != nil {
 			return err
