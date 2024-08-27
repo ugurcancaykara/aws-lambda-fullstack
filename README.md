@@ -83,3 +83,10 @@ The Lambda function is implemented in Go. It is triggered by events in the S3 bu
 - Consider integrating a more permanent storage solution like Amazon RDS or DynamoDB for processed data
 - Enhance error handling to manage and log unexpected inputs effectively
 
+
+
+##### References
+[Deploying Go Lambda](https://docs.aws.amazon.com/lambda/latest/dg/golang-package.html)
+[best practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html)
+[migrating from 1.x to os-only](https://aws.amazon.com/blogs/compute/migrating-aws-lambda-functions-from-the-go1-x-runtime-to-the-custom-runtime-on-amazon-linux-2/)
+
