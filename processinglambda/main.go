@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -21,16 +22,15 @@ import (
 )
 
 type Customer struct {
-	ID         string  `json:"id"`
-	Name       string  `json:"name"`
-	TotalSpent float64 `json:"total_amount_spent"`
-	Orders     []Order `json:"orders"`
+	ID         string  `json:"id" dynamodbav:"ID"`
+	Name       string  `json:"name" dynamodbav:"Name"`
+	TotalSpent float64 `json:"total_amount_spent" dynamodbav:"TotalSpent"`
+	Orders     []Order `json:"orders" dynamodbav:"Orders"`
 }
-
 type Order struct {
-	ID      string   `json:"id"`
-	ItemIDs []string `json:"item_ids"`
-	Amount  float64  `json:"amount"`
+	ID      string   `json:"id" dynamodbav:"ID"`            // Maps to order_id in CSV
+	Amount  float64  `json:"amount" dynamodbav:"Amount"`    // Maps to amount in CSV
+	ItemIDs []string `json:"item_ids" dynamodbav:"ItemIDs"` // This field will be updated when processing items
 }
 
 func handler(ctx context.Context, s3Event events.S3Event) {
