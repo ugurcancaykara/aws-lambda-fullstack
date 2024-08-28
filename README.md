@@ -6,6 +6,13 @@ This project creates a serverless data processing pipeline. It reads CSV files f
 ### Underlying tech
 The pipeline utilizes AWS Lambda, DynamoDB, SQS, S3 and are orchestrated using Pulumi with Golang
 
+### Folder structure
+To have a convention with the naming:
+`deploy` ->  pulumi IaC files
+`processinglambda` -> lambda codebase
+`Makefile` -> it helps you at build phase, i used and tested it at mac, i think it's not going to work with windows
+`*.csv files` -> they are just for testing purposes
+
 ## Background
 
 I have been interested with pulumi and wanted to test it for a while :) So this is also an attempt to test pulumi for IaC practices. I just don't want to have an up and running IaC but I wanted to make some research and focus on is it really applicable at large scale?, is it mature enough to use? 
