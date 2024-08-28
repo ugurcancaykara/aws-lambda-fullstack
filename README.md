@@ -8,9 +8,13 @@ The pipeline utilizes AWS Lambda, DynamoDB, SQS, S3 and are orchestrated using P
 
 ### Folder structure
 To have a convention with the naming:
+
 `deploy` ->  pulumi IaC files
+
 `processinglambda` -> lambda codebase
+
 `Makefile` -> it helps you at build phase, i used and tested it at mac, i think it's not going to work with windows
+
 `*.csv files` -> they are just for testing purposes
 
 ## Background
