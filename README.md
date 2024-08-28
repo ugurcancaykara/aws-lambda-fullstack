@@ -123,7 +123,6 @@ and it will open a link, after you authenticated to pulumi, we are all good
 
 1. **Clone the repository**
 ```
-git clone https://github.com/ugurcancaykara/aws-lambda-fullstack
 cd aws-lambda-fullstack
 ```
 
