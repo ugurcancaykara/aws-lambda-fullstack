@@ -213,7 +213,6 @@ pulumi destroy -y
 ### 3. **DynamoDB Optimization**
    - **Provisioned Throughput**: Using provisioned throughput with auto-scaling ensures that your DynamoDB table can handle peak traffic efficiently without over-provisioning, optimizing cost while maintaining performance.
    - **On-Demand Mode**: On-demand mode is ideal for unpredictable traffic, allowing DynamoDB to scale instantly to handle any request load without manual intervention, ensuring seamless user experience.
-   - **DAX (DynamoDB Accelerator)**: Implementing DAX reduces latency for read-heavy applications by caching results, which speeds up read operations and reduces load on the DynamoDB table.
 
 ### 4. **Monitoring and Tracing**
    - **AWS X-Ray Tracing**: Enabling X-Ray helps monitor and trace the execution flow, identifying performance bottlenecks and debugging issues effectively. It provides visibility into how requests are processed across the system.
