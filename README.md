@@ -8,7 +8,7 @@ The pipeline utilizes AWS Lambda, DynamoDB, SQS, S3 and are orchestrated using P
 
 ## Background
 
-I have been interested with pulumi and wanted to test it for a while :) So this is also an attempt to test pulumi for IaC practices. I just don't want to make up and running IaC but I want to make research and focus on is it really applicable at large scale?, is it mature enough to use? 
+I have been interested with pulumi and wanted to test it for a while :) So this is also an attempt to test pulumi for IaC practices. I just don't want to have an up and running IaC but I wanted to make some research and focus on is it really applicable at large scale?, is it mature enough to use? 
 
 To answer those questions, I wanted to make a [workshop](https://github.com/ugurcancaykara/pulumi-workshop). It will cover all the topics that are important for IaC best practices and how you can make those happen with `pulumi`.
 
@@ -67,6 +67,11 @@ Refactored Flow:
 
 
 ## Deploying the stack
+
+Before deploying the stack, it's important to recognize that the current message production flow is somewhat fragile due to its reliance on the specific order and timing of file uploads. This approach may work under controlled conditions but could fail or become unreliable if the business logic evolves or if unexpected events occur.
+
+To mitigate these risks, if a complete refactor is not feasible, implementing a reconciliation mechanism, such as a state machine with a retry mechanism, would be necessary. This would provide better management of the workflow and ensure that the processing of the partner's uploaded files is reliable and consistent, even in the face of failures or out-of-order events.
+
 ###  Prerequisites
 Before you can run this project, you need to have the following tools installed:
 - [Pulumi](https://www.pulumi.com/docs/get-started/install/)
