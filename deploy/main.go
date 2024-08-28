@@ -106,26 +106,29 @@ func main() {
 		if err != nil {
 			return err
 		}
+
 		_, err = iam.NewRolePolicy(ctx, "lambdaDynamoDBPolicy", &iam.RolePolicyArgs{
 			Role: lambdaExecRole.Name,
 			Policy: pulumi.Sprintf(`{
-		"Version": "2012-10-17",
-		"Statement": [
-			{
-				"Effect": "Allow",
-				"Action": [
-					"dynamodb:PutItem",
-					"dynamodb:GetItem",
-					"dynamodb:UpdateItem"
-				],
-				"Resource": "%s"
-			}
-		]
-	}`, table.Arn),
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "dynamodb:PutItem",
+                    "dynamodb:GetItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:Scan"
+		],
+                "Resource": "%s"
+            }
+        ]
+    }`, table.Arn),
 		})
 		if err != nil {
 			return err
 		}
+
 		// Lambda function
 		// Set arguments for constructing the function resource.
 		args := &lambda.FunctionArgs{
