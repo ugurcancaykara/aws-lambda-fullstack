@@ -98,6 +98,13 @@ func sendCustomerToSQS(sqsSvc *sqs.SQS, queueUrl string, customer Customer) {
 }
 
 func processCustomers(reader *csv.Reader, dynamoDBSvc *dynamodb.DynamoDB, tableName string) {
+	// Skip the header row
+	_, err := reader.Read()
+	if err != nil {
+		log.Printf("Error reading header row: %v", err)
+		return
+	}
+
 	for {
 		line, err := reader.Read()
 		if err == io.EOF {
@@ -108,8 +115,9 @@ func processCustomers(reader *csv.Reader, dynamoDBSvc *dynamodb.DynamoDB, tableN
 			continue
 		}
 
-		id := line[0]
-		name := line[1]
+		id := line[0]   // Assuming the first column is customer_id
+		name := line[1] // Assuming the second column is name
+
 		customer := &Customer{ID: id, Name: name, Orders: []Order{}}
 
 		av, err := dynamodbattribute.MarshalMap(customer)
@@ -118,6 +126,11 @@ func processCustomers(reader *csv.Reader, dynamoDBSvc *dynamodb.DynamoDB, tableN
 			continue
 		}
 
+		// Log the marshaled attribute value
+		log.Printf("Marshalled attribute value: %v", av)
+
+		fmt.Println("this is customer id: ", customer.ID)
+		fmt.Println("this is customer name: ", customer.Name)
 		_, err = dynamoDBSvc.PutItem(&dynamodb.PutItemInput{
 			TableName: aws.String(tableName),
 			Item:      av,
@@ -127,8 +140,14 @@ func processCustomers(reader *csv.Reader, dynamoDBSvc *dynamodb.DynamoDB, tableN
 		}
 	}
 }
-
 func processOrders(reader *csv.Reader, dynamoDBSvc *dynamodb.DynamoDB, tableName string) {
+	// Skip the header row
+	_, err := reader.Read()
+	if err != nil {
+		log.Printf("Error reading header row: %v", err)
+		return
+	}
+
 	for {
 		line, err := reader.Read()
 		if err == io.EOF {
@@ -139,8 +158,8 @@ func processOrders(reader *csv.Reader, dynamoDBSvc *dynamodb.DynamoDB, tableName
 			continue
 		}
 
-		customerID := line[1]
-		orderID := line[0]
+		customerID := line[1] // Assuming the second column is customer_id
+		orderID := line[0]    // Assuming the first column is order_id
 		amount, err := strconv.ParseFloat(line[2], 64)
 		if err != nil {
 			log.Printf("Error parsing order amount: %v", err)
@@ -162,8 +181,14 @@ func processOrders(reader *csv.Reader, dynamoDBSvc *dynamodb.DynamoDB, tableName
 		}
 	}
 }
-
 func processItems(reader *csv.Reader, dynamoDBSvc *dynamodb.DynamoDB, tableName string) {
+	// Skip the header row
+	_, err := reader.Read()
+	if err != nil {
+		log.Printf("Error reading header row: %v", err)
+		return
+	}
+
 	for {
 		line, err := reader.Read()
 		if err == io.EOF {
@@ -174,8 +199,8 @@ func processItems(reader *csv.Reader, dynamoDBSvc *dynamodb.DynamoDB, tableName 
 			continue
 		}
 
-		orderID := line[1]
-		itemID := line[0]
+		orderID := line[1] // Assuming the second column is order_id
+		itemID := line[0]  // Assuming the first column is item_id
 
 		// Retrieve customers and update orders
 		customers, err := getAllCustomersFromDynamoDB(dynamoDBSvc, tableName)
@@ -197,7 +222,6 @@ func processItems(reader *csv.Reader, dynamoDBSvc *dynamodb.DynamoDB, tableName 
 		}
 	}
 }
-
 func getCustomerFromDynamoDB(customerID string, svc *dynamodb.DynamoDB, tableName string) (*Customer, error) {
 	result, err := svc.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(tableName),
@@ -240,11 +264,16 @@ func getAllCustomersFromDynamoDB(svc *dynamodb.DynamoDB, tableName string) ([]Cu
 }
 
 func saveCustomerToDynamoDB(customer *Customer, svc *dynamodb.DynamoDB, tableName string) error {
+	if customer.ID == "" {
+		return fmt.Errorf("customer ID is missing")
+	}
+
 	av, err := dynamodbattribute.MarshalMap(customer)
 	if err != nil {
 		return fmt.Errorf("got error marshalling map: %v", err)
 	}
 
+	log.Printf("Saving customer with ID: %s", customer.ID)
 	_, err = svc.PutItem(&dynamodb.PutItemInput{
 		TableName: aws.String(tableName),
 		Item:      av,
