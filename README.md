@@ -45,8 +45,8 @@ The problem involves processing multiple CSV files (customers_*.csv, orders_*.cs
 **Solution:**
 
 - AWS Lambda: Each CSV file upload triggers a Lambda function that processes the file and updates customer data.
-- DynamoDB: Used as a persistent storage solution to store and aggregate customer data across multiple Lambda invocations. This allows data from different CSV files to be combined. [For more detail, at the end of the README.md](#necessity-of-using-dynamodb-instead-of-in-memory--rocessing-in-lambda)
-- SQS: Once all data is aggregated, a final JSON message for each customer is sent to SQ
+- DynamoDB: Used as a persistent storage solution to store and aggregate customer data across multiple Lambda invocations. This allows data from different CSV files to be combined.
+- SQS: Once all data is aggregated, a final JSON message for each customer is sent to SQS.
 
 ### Scability:
 **Serverless Architecture:** The solution scales automatically with the volume of files due to the serverless nature of AWS Lambda, S3, and DynamoDB.
