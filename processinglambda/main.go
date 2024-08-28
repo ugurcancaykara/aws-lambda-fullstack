@@ -61,9 +61,39 @@ func handler(ctx context.Context, s3Event events.S3Event) {
 			processOrders(csvReader, dynamoDBSvc, tableName)
 		case strings.HasPrefix(s3Record.Object.Key, "items_"):
 			processItems(csvReader, dynamoDBSvc, tableName)
+			// After processing, send customer data to SQS
+			customers, err := getAllCustomersFromDynamoDB(dynamoDBSvc, tableName)
+			if err != nil {
+				log.Printf("Failed to retrieve customers: %v", err)
+				return
+			}
+
+			for _, customer := range customers {
+				sendCustomerToSQS(sqsSvc, queueUrl, customer)
+			}
+
 		default:
 			sendErrorMessage(sqsSvc, queueUrl, fmt.Sprintf("Unexpected file: %s", s3Record.Object.Key))
 		}
+	}
+
+}
+
+func sendCustomerToSQS(sqsSvc *sqs.SQS, queueUrl string, customer Customer) {
+	jsonData, err := json.Marshal(customer)
+	if err != nil {
+		log.Printf("Failed to marshal customer data to JSON: %v", err)
+		return
+	}
+
+	_, err = sqsSvc.SendMessage(&sqs.SendMessageInput{
+		MessageBody: aws.String(string(jsonData)),
+		QueueUrl:    aws.String(queueUrl),
+	})
+	if err != nil {
+		log.Printf("Failed to send customer data to SQS: %v", err)
+	} else {
+		log.Printf("Successfully sent customer data to SQS: %s", customer.ID)
 	}
 }
 
