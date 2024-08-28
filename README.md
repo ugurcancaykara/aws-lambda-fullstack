@@ -143,11 +143,9 @@ yes <-
 
 ## Producing Messages
 
-First, change your directory to root path folder level where `*.csv` files exists
-
 ### Assign values to variables
 
-```
+``` 
 # Retrieve the S3 bucket name
 S3_BUCKET_NAME=$(pulumi stack output s3BucketName)
 
@@ -156,8 +154,12 @@ SQS_QUEUE_URL=$(pulumi stack output sqsQueueUrl)
 ```
 
 ### Triggering lamba invocation with s3 notifications
-Order is important here:
+Order is important here. First let's get back to root level folder path  
 ```
+
+# Change your directory to where csv files exists
+cd ..
+
 # Upload customers_20230828.csv
 aws s3 cp customers_20230828.csv s3://$S3_BUCKET_NAME/customers_20230828.csv
 
