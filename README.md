@@ -126,12 +126,12 @@ and it will open a link, after you authenticated to pulumi, we are all good
 cd aws-lambda-fullstack
 ```
 
-2.**Build the lambda function**: Run make command and compile Go lambda for linux env:
+2.**Build the lambda function**: Run make command and compile Go lambda:
 ```
 make build
 ```
 
-3. **Deploy the infrastructure**: Navigate to `infrastack` directory and run the following command
+3. **Deploy the infrastructure**: Navigate to `deploy` directory and run the following command
 ```
 cd deploy
 pulumi up
